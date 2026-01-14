@@ -3,7 +3,7 @@ package main
 import (
 	"fmt"
 
-	deck "example.com/deck"
+	//deck "example.com/deck"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -20,9 +20,9 @@ const (
 	ENDING
 )
 
-var cards []deck.Card
-var card deck.Card
-var hand []deck.Card
+var cards []Card
+var card Card
+var hand []Card
 
 func main() {
 
@@ -116,7 +116,7 @@ func main() {
 func freeCellUI(rec rl.Rectangle) {
 	rl.DrawRectangleRec(rec, rl.DarkPurple)
 
-	txt := "The card you drew is " + fmt.Sprint(hand[0].Value) + " of " + hand[0].Suit
+	txt := "The card you drew is " + fmt.Sprint(hand[0].Rank) + " of " + hand[0].Suit
 	txtlen := rl.MeasureText(txt, 50)
 	rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2-50+2, 50, rl.Black)
 	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2-50, 50, rl.White)
@@ -128,13 +128,15 @@ func freeCellUI(rec rl.Rectangle) {
 }
 
 func freeCellGame() {
-	var c deck.Card
-	cards = deck.FreshDeck()
-	deck.Shuffle(cards[:])
-	c, cards = deck.PopFirst(cards[:])
-	hand = append(hand, c)
+
+	cards = FreshDeck()
+	hand = nil
+	Shuffle(cards[:])
+	card, cards = PopFirst(cards[:])
+	hand = append(hand, card)
 
 }
+
 // func tonysGameUI(rec rl.Rectangle) {
 // 	_ = deck.FreshDeck()
 

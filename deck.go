@@ -1,4 +1,4 @@
-package deck
+package main
 
 import (
 	"math/rand/v2"
@@ -8,16 +8,31 @@ import (
 var Suits []string = []string{"hearts", "diamonds", "clubs", "spades"}
 
 // default is "A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K"
-var Values = []string{
+var Ranks = []string{
 	"A", "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K",
 }
 
+var Values = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+
 type Card struct {
-	Suit string
-	//display string
-	Value int
+	Suit  string
+	Rank  string
+	value int
 }
 
+// Color attached to card uses suit to determine if red or black ~ consider generalizing it
+func (c Card) Color() string {
+	if c.Suit == "hearts" || c.Suit == "diamonds" {
+		return "red"
+	} else {
+		return "black"
+	}
+}
+func (c Card) CardValue() int {
+	return c.value
+}
+
+//func (c Card) Card
 // func main() {
 // 	cards := FreshDeck()
 // 	printDeck(cards)
@@ -30,8 +45,9 @@ type Card struct {
 func FreshDeck() []Card {
 	var cards []Card
 	for _, s := range Suits {
-		for v := range Values {
-			var c Card = Card{Suit: s, Value: v}
+
+		for i, v := range Ranks {
+			var c Card = Card{Suit: s, Rank: v, value: Values[i]}
 			cards = append(cards, c)
 		}
 	}
@@ -44,15 +60,6 @@ func ShuffledDeck() []Card {
 	cards := FreshDeck()
 	Shuffle(cards[:])
 	return cards
-}
-
-// Color attached to card uses suit to determine if red or black ~ consider generalizing it
-func (c Card) Color() string {
-	if c.Suit == "hearts" || c.Suit == "diamonds" {
-		return "red"
-	} else {
-		return "black"
-	}
 }
 
 // Shuffle changes the deck you passed - pass by slice
@@ -68,7 +75,7 @@ func Shuffle(cards []Card) {
 // e.g. cards = PushLast(cards[:], c)
 func PushLast(cards []Card, c Card) []Card {
 	cards = append(cards, c)
-	println("Pushed", c.Color(), c.Suit, c.Value+1)
+	println("Pushed", c.Color(), c.Suit, c.CardValue())
 	return cards
 }
 
@@ -83,7 +90,7 @@ func PushFirst(cards []Card, c Card) []Card {
 func PopFirst(cards []Card) (Card, []Card) {
 	x := cards[0]
 	cards = cards[1:]
-	//println("Popped", x.Color(), x.suite, x.value+1)
+	//println("Popped", x.Color(), x.suite, x.CardValue())
 	return x, cards
 }
 
@@ -91,14 +98,14 @@ func PopFirst(cards []Card) (Card, []Card) {
 func PopLast(cards []Card) (Card, []Card) {
 	x := cards[len(cards)-1]
 	cards = cards[:len(cards)-1]
-	//println("returning", x.Color(), x.suite, x.value+1)
+	//println("returning", x.Color(), x.suite, x.CardValue())
 	return x, cards
 }
 
 // func printDeck(cards []card) {
 // 	println("Deck")
 // 	for _, c := range cards {
-// 		println(c.Color(), c.suit, c.value+1)
+// 		println(c.Color(), c.suit, c.CardValue())
 // 	}
 // 	print(len(cards))
 // }
