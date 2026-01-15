@@ -20,6 +20,7 @@ const (
 	ENDING
 )
 
+var splashCountDown int = 240
 var cards []Card
 var card Card
 var hand []Card
@@ -45,7 +46,7 @@ func main() {
 		switch currentScreen {
 		case LOGO:
 			frames++
-			if frames > 240 {
+			if frames > splashCountDown {
 				currentScreen = TITLE
 			}
 		case TITLE:
@@ -121,7 +122,7 @@ func splash(frames int) {
 	rl.DrawText(txt, screenW/2-txtlen/2-3, screenH/2-50+3, 50, rl.Magenta)
 	rl.DrawText(txt, screenW/2-txtlen/2-1, screenH/2-50+1, 50, rl.Black)
 	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2-50, 50, rl.White)
-	txt = "this message disappears in " + fmt.Sprint(240-frames) + " frames"
+	txt = "this message disappears in " + fmt.Sprint(splashCountDown-frames) + " frames"
 	txtlen = rl.MeasureText(txt, 30)
 	rl.DrawText(txt, screenW/2-txtlen/2-3, screenH/2+3, 30, rl.Magenta)
 	rl.DrawText(txt, screenW/2-txtlen/2-1, screenH/2+1, 30, rl.Black)
