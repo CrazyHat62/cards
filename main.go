@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
 
 	//deck "example.com/deck"
 
@@ -24,6 +25,7 @@ var splashCountDown int = 240
 var cards []Card
 var card Card
 var hand []Card
+var CurrentGameSeed int
 
 type game func()
 type display func(rl.Rectangle)
@@ -76,6 +78,7 @@ func main() {
 			gamePlay()
 		case GAMEPLAY:
 			gameUI(rec)
+			Show(cards[:])
 		case ENDING:
 			endScreen(rec)
 		}
@@ -101,8 +104,8 @@ func freeCellUI(rec rl.Rectangle) {
 }
 
 func freeCellGame() {
-
-	cards = FreshDeck()
+	seed := 1 + rand.Intn(32000)
+	cards = deal(seed)
 	hand = nil
 	Shuffle(cards[:])
 	card, cards = PopFirst(cards[:])
