@@ -12,8 +12,6 @@ import (
 const screenW = int32(1280)
 const screenH = int32(720)
 
-type gameScreen int
-
 const (
 	LOGO = iota
 	TITLE
@@ -26,43 +24,49 @@ var cards []Card
 var card Card
 var hand []Card
 var CurrentGameSeed int
+var frames int
 
+// type gameScreen int
+type gameScreen func(rl.Rectangle)
 type game func()
-type display func(rl.Rectangle)
 
 func main() {
 
 	rl.InitWindow(screenW, screenH, "raylib [core] example - basic screen manager")
 
 	var currentScreen gameScreen
-	currentScreen = LOGO
-	frames := 0
-
-	var gamePlay game = freeCellGame
-	var gameUI display = freeCellUI
+	var currentGame game
+	currentScreen = splashScreen
+	currentGame = noGame
+	currentScreenENUM := LOGO
 
 	rl.SetTargetFPS(60)
 
 	for !rl.WindowShouldClose() {
 
-		switch currentScreen {
+		switch currentScreenENUM {
 		case LOGO:
-			frames++
 			if frames > splashCountDown {
-				currentScreen = TITLE
+				currentScreenENUM = TITLE
+				currentScreen = titleScreen
 			}
 		case TITLE:
 			if rl.IsKeyPressed(rl.KeyEnter) {
-				currentScreen = GAMEPLAY
+				currentScreenENUM = GAMEPLAY
+				currentScreen = freeCellScreen
+				currentGame = freeCellGame
 			}
 		case GAMEPLAY:
 			if rl.IsKeyPressed(rl.KeyEnter) {
-				currentScreen = ENDING
+				currentScreenENUM = ENDING
+				currentScreen = endScreen
+				currentGame = noGame
 			}
 		case ENDING:
 			if rl.IsKeyPressed(rl.KeyEnter) {
-				currentScreen = LOGO
-				frames = 0
+				currentScreenENUM = LOGO
+				currentScreen = splashScreen
+				//				frames = 0 //reset count down for logo if looping
 			}
 		}
 
@@ -70,18 +74,9 @@ func main() {
 
 		rl.ClearBackground(rl.Black)
 		rec := rl.NewRectangle(0, 0, float32(screenW), float32(screenH))
-		switch currentScreen {
-		case LOGO:
-			splash(frames)
-		case TITLE:
-			titleScreen(rec)
-			gamePlay()
-		case GAMEPLAY:
-			gameUI(rec)
-			Show(cards[:])
-		case ENDING:
-			endScreen(rec)
-		}
+
+		currentGame()
+		currentScreen(rec)
 
 		rl.EndDrawing()
 	}
@@ -89,17 +84,7 @@ func main() {
 	rl.CloseWindow()
 }
 
-func freeCellUI(rec rl.Rectangle) {
-	rl.DrawRectangleRec(rec, rl.DarkPurple)
-
-	txt := "The card you drew is " + fmt.Sprint(hand[0].Rank) + " of " + hand[0].Suit
-	txtlen := rl.MeasureText(txt, 50)
-	rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2-50+2, 50, rl.Black)
-	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2-50, 50, rl.White)
-	txt = "press enter to move to next screen"
-	txtlen = rl.MeasureText(txt, 30)
-	rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2+2, 30, rl.Black)
-	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
+func noGame() {
 
 }
 
@@ -119,7 +104,22 @@ func freeCellGame() {
 // 	rl.DrawRectangleRec(rec, rl.DarkPurple)
 // }
 
-func splash(frames int) {
+func freeCellScreen(rec rl.Rectangle) {
+	rl.DrawRectangleRec(rec, rl.DarkPurple)
+
+	txt := "The card you drew is " + fmt.Sprint(hand[0].Rank) + " of " + hand[0].Suit
+	txtlen := rl.MeasureText(txt, 50)
+	rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2-50+2, 50, rl.Black)
+	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2-50, 50, rl.White)
+	txt = "press enter to move to next screen"
+	txtlen = rl.MeasureText(txt, 30)
+	rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2+2, 30, rl.Black)
+	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
+
+}
+
+func splashScreen(rec rl.Rectangle) {
+	frames++
 	txt := "YOUR LOGO GOES HERE"
 	txtlen := rl.MeasureText(txt, 50)
 	rl.DrawText(txt, screenW/2-txtlen/2-3, screenH/2-50+3, 50, rl.Magenta)
