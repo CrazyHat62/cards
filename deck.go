@@ -1,20 +1,27 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 	"math"
 	"math/rand/v2"
+
+	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// deafult is "hearts", "diamonds", "clubs", "spades"
 var Suits []string = []string{"hearts", "diamonds", "clubs", "spades"}
-
+var Ranks []string = []string{"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"}
 var Values = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
 type Card struct {
-	Suit  string
-	Rank  string
-	index int
+	Suit   string
+	Rank   string
+	Sprite rl.Texture2D
+	index  int
+}
+
+func noCard() Card {
+	return Card{Suit: "", Rank: "", index: -1}
 }
 
 const sSuits = "CDHS"
@@ -80,19 +87,24 @@ func PushFirst(cards []Card, c Card) []Card {
 }
 
 // e.g. c, cards := PopFirst(cards[:])
-func PopFirst(cards []Card) (Card, []Card) {
-	x := cards[0]
-	cards = cards[1:]
-	//println("Popped", x.Color(), x.suite, x.CardValue())
-	return x, cards
+func PopFirst(cards []Card) (Card, []Card, error) {
+	if len(cards) > 0 {
+		x := cards[0]
+		cards = cards[1:]
+		return x, cards, nil
+	}
+	return noCard(), nil, errors.New("No cards in Deck")
 }
 
 // c, cards := PopLast(cards[:])
-func PopLast(cards []Card) (Card, []Card) {
-	x := cards[len(cards)-1]
-	cards = cards[:len(cards)-1]
-	//println("returning", x.Color(), x.suite, x.CardValue())
-	return x, cards
+func PopLast(cards []Card) (Card, []Card, error) {
+	if len(cards) > 0 {
+		x := cards[len(cards)-1]
+		cards = cards[:len(cards)-1]
+		//println("returning", x.Color(), x.suite, x.CardValue())
+		return x, cards, nil
+	}
+	return noCard(), nil, errors.New("No cards in Deck")
 }
 
 func Split(cards []Card) ([]Card, []Card) {
