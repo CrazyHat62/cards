@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"math/rand"
 
-	//deck "example.com/deck"
+	dk "example.com/deck"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
@@ -21,8 +21,8 @@ const (
 )
 
 var splashCountDown int = 240
-var cards []Card
-var card Card
+var cards []dk.Card
+var card dk.Card
 
 // var hand []Card
 var CurrentGameSeed int
@@ -65,7 +65,7 @@ func main() {
 	currentScreen = splashScreen
 	currentGame = noGame
 	currentScreenENUM := LOGO
-	card = noCard()
+	card = dk.NoCard()
 
 	FrameRec = rl.NewRectangle(0, 0, spriteSizeW, spriteSizeH)
 	FrameRecDest = rl.NewRectangle(0, 0, float32(spriteSizeW/2), float32(spriteSizeH/2))
@@ -81,7 +81,7 @@ func main() {
 				currentScreenENUM = TITLE
 				currentScreen = titleScreen
 				currentGame = noGame
-				card = noCard()
+				card = dk.NoCard()
 			}
 		case TITLE:
 			if rl.IsKeyPressed(rl.KeyEnter) {
@@ -95,7 +95,7 @@ func main() {
 				currentScreenENUM = ENDING
 				currentScreen = endScreen
 				currentGame = noGame
-				card = noCard()
+				card = dk.NoCard()
 			}
 		case ENDING:
 			if rl.IsKeyPressed(rl.KeyEnter) {
@@ -107,13 +107,13 @@ func main() {
 				currentScreenENUM = TITLE
 				currentScreen = titleScreen
 				currentGame = noGame
-				card = noCard()
+				card = dk.NoCard()
 			}
 		}
 
 		rl.BeginDrawing()
 
-		rl.ClearBackground(rl.White)
+		rl.ClearBackground(rl.Black)
 		rec := rl.NewRectangle(0, 0, float32(screenW), float32(screenH))
 
 		err = currentGame()
@@ -134,11 +134,11 @@ func freeCellGame() error {
 	if !deckPlayed {
 		deckPlayed = true
 		seed := 1 + rand.Intn(32000)
-		cards = deal(seed)
+		cards = dk.Deal(seed)
 	}
 
 	if rl.IsKeyPressed(rl.KeyEnter) {
-		card, cards, err = PopFirst(cards[:])
+		card, cards, err = dk.PopFirst(cards[:])
 		// 	seed := 1 + rand.Intn(32000)
 		// 	cards = deal(seed)
 		// 	//Shuffle(cards[:])
