@@ -10,7 +10,6 @@ import (
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-
 var cards []dk.Card
 var card dk.Card
 
@@ -34,7 +33,6 @@ func freeCellGame() error {
 	}
 	return err
 }
-
 
 func freeCellScreen(rec rl.Rectangle) {
 	var TxSprites rl.Texture2D
@@ -61,8 +59,8 @@ func freeCellScreen(rec rl.Rectangle) {
 	case card.Suit == string('H'):
 		TxSprites = HeartsSprites
 	}
-	ix := 0
-	iy := 0
+	ix := int32(0)
+	iy := int32(0)
 	switch { //could use dictionary to map
 	case card.Rank == string('2'):
 		ix = 0
