@@ -102,9 +102,38 @@ func freeCellScreen(rec rl.Rectangle) {
 		ix = 7
 		iy = 1
 	}
-	FrameRec.X = float32(spriteSizeW * ix) // + 2*ix) padding??
-	FrameRec.Y = float32(spriteSizeH * iy)
+	source := FrameRec
+	source.X = float32(spriteSizeW*ix + ix)
+	source.Y = float32(spriteSizeH*iy + iy)
+	dest := FrameRec //FrameRecDest
+	dest.X = float32(spriteSizeW*ix+ix) + 10.0
+	dest.Y = float32(spriteSizeH*iy+iy) + 10.0
 
-	rl.DrawTexturePro(TxSprites, FrameRec, FrameRecDest, Position, 0, rl.RayWhite)
+	origin := rl.Vector2(floatVect{X: 0.0, Y: 0.0})
+	rotation := float32(0.0)
+
+	rl.DrawTexturePro(TxSprites, source, dest, origin, rotation, rl.RayWhite)
 
 }
+
+/*
+
++ texture: The Texture2D to be drawn. This must be loaded into GPU memory first using a function like LoadTexture.
+
++ source: A Rectangle that defines the area of the original texture to use (in texture space, where (0, 0) is the top-left corner of the texture).
+
+    To use the entire texture, the source rectangle would be { 0.0f, 0.0f, (float)texture.width, (float)texture.height }.
+    To flip the texture horizontally, use a negative width in the source rectangle.
+
++ dest: A Rectangle that defines where on the screen the source rectangle will be drawn (in screen space, where (0, 0) is the top-left corner of the window). The width and height of this rectangle determine the final scale of the drawn texture portion.
+
++ origin: A Vector2 that specifies the point around which rotation and scaling will occur. This point is relative to the top-left corner of the destination rectangle (dest).
+
+    For no rotation/custom origin, use { 0.0f, 0.0f }.
+    To rotate around the center of the destination rectangle, use { dest.width / 2, dest.height / 2 }.
+
++ rotation: A float value for the angle of rotation in degrees (clockwise).
+
++ tint: A Color to apply as a tint to the texture. Using WHITE displays the texture in its native colors.
+
+*/
