@@ -3,6 +3,7 @@ package main
 import (
 	"errors"
 	"fmt"
+
 	//"math/rand"
 
 	dk "example.com/deck"
@@ -33,13 +34,13 @@ var ClubsSprites rl.Texture2D
 var SpadesSprites rl.Texture2D
 var DiamondsSprites rl.Texture2D
 var HeartsSprites rl.Texture2D
+var PlaceHolderSprites rl.Texture2D
+
 var FrameRec rl.Rectangle
 var FrameRecDest rl.Rectangle
 var Position rl.Vector2
 
-// type gameScreen int
 type gameScreen func(rl.Rectangle)
-
 type game func() error
 
 func main() {
@@ -57,6 +58,7 @@ func main() {
 
 	var currentScreen gameScreen
 	var currentGame game
+
 	currentScreen = splashScreen
 	currentGame = noGame
 	currentScreenENUM := LOGO
@@ -85,7 +87,7 @@ func main() {
 				currentGame = freeCellGame
 			}
 		case GAMEPLAY:
-			if rl.IsKeyPressed(rl.KeyEscape) || (deckPlayed && card.Suit == "") {
+			if rl.IsKeyPressed(rl.KeyEscape) {
 				deckPlayed = false
 				currentScreenENUM = ENDING
 				currentScreen = endScreen
@@ -129,7 +131,6 @@ func noGame() error {
 
 // 	rl.DrawRectangleRec(rec, rl.DarkPurple)
 // }
-
 
 func splashScreen(rec rl.Rectangle) {
 	frames++
