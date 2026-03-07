@@ -3,6 +3,8 @@ package main
 import (
 	"errors"
 	"fmt"
+	"os"
+
 	//"math/rand"
 
 	dk "example.com/deck"
@@ -45,6 +47,7 @@ type game func() error
 func main() {
 
 	rl.InitWindow(screenW, screenH, "raylib [core] example - basic screen manager")
+	defer rl.CloseWindow()
 
 	ClubsSprites = rl.LoadTexture("images/clubsS.png")
 	defer rl.UnloadTexture(ClubsSprites)
@@ -81,11 +84,12 @@ func main() {
 		case TITLE:
 			if rl.IsKeyPressed(rl.KeyEnter) {
 				currentScreenENUM = GAMEPLAY
+				// Set up free cell here
 				currentScreen = freeCellScreen
 				currentGame = freeCellGame
 			}
 		case GAMEPLAY:
-			if rl.IsKeyPressed(rl.KeyEscape) || (deckPlayed && card.Suit == "") {
+			if rl.IsKeyPressed(rl.KeyEscape) || rl.IsKeyPressed(rl.KeyEnter) { //|| (deckPlayed && card.Suit == "") {
 				deckPlayed = false
 				currentScreenENUM = ENDING
 				currentScreen = endScreen
@@ -94,15 +98,7 @@ func main() {
 			}
 		case ENDING:
 			if rl.IsKeyPressed(rl.KeyEnter) {
-
-				//currentScreenENUM = LOGO
-				//currentScreen = splashScreen
-				//currentGame = noGame
-				//frames = 0 //reset count down for logo
-				currentScreenENUM = TITLE
-				currentScreen = titleScreen
-				currentGame = noGame
-				card = dk.NoCard()
+				os.Exit(0)
 			}
 		}
 
@@ -111,13 +107,13 @@ func main() {
 		rl.ClearBackground(rl.Black)
 		rec := rl.NewRectangle(0, 0, float32(screenW), float32(screenH))
 
+		// get deck and card
 		err = currentGame()
+		// draw card(s)
 		currentScreen(rec)
 
 		rl.EndDrawing()
 	}
-
-	rl.CloseWindow()
 }
 
 func noGame() error {
@@ -129,7 +125,6 @@ func noGame() error {
 
 // 	rl.DrawRectangleRec(rec, rl.DarkPurple)
 // }
-
 
 func splashScreen(rec rl.Rectangle) {
 	frames++

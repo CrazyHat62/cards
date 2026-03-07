@@ -2,7 +2,7 @@ module example.com/cards
 
 go 1.25.5
 
-replace example.com/deck => ./deck/
+replace example.com/deck => ../deck/
 
 require (
 	example.com/deck v0.0.0
