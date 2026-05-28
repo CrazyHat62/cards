@@ -1,3 +1,5 @@
+// This app is a freecell solitare game
+
 package main
 
 import (
@@ -5,15 +7,17 @@ import (
 	"fmt"
 	"os"
 
-	//"math/rand"
+	"math/rand/v2"
 
 	dk "example.com/deck"
 
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-const screenW = int32(1280)
-const screenH = int32(720)
+
+
+var screenW int32 = 1280
+var screenH int32 = 720
 
 const (
 	LOGO = iota
@@ -39,6 +43,20 @@ var FrameRec rl.Rectangle
 var FrameRecDest rl.Rectangle
 var Position rl.Vector2
 
+
+var cards []dk.Card
+var card dk.Card
+
+// var hand []Card
+var CurrentGameSeed int
+var deckPlayed bool
+var Suits []string = []string{"hearts", "diamonds", "clubs", "spades"}
+var Ranks []string = []string{"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"}
+var Values = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
+
+
+
+
 // type gameScreen int
 type gameScreen func(rl.Rectangle)
 
@@ -46,8 +64,11 @@ type game func() error
 
 func main() {
 
-	rl.InitWindow(screenW, screenH, "raylib [core] example - basic screen manager")
+//	rl.InitWindow(0, 0, "raylib [core] example - basic screen manager")
+        rl.InitWindow(screenW, screenH, "raylib [core] example - basic screen manager")
 	defer rl.CloseWindow()
+        screenW = int32(rl.GetScreenWidth())
+        screenH = int32(rl.GetScreenHeight())
 
 	ClubsSprites = rl.LoadTexture("images/clubsS.png")
 	defer rl.UnloadTexture(ClubsSprites)
@@ -64,6 +85,7 @@ func main() {
 	currentGame = noGame
 	currentScreenENUM := LOGO
 	card = dk.NoCard()
+	//card = NoCard()
 
 	FrameRec = rl.NewRectangle(0, 0, spriteSizeW, spriteSizeH)
 	FrameRecDest = rl.NewRectangle(0, 0, float32(spriteSizeW/2), float32(spriteSizeH/2))
@@ -73,6 +95,7 @@ func main() {
 
 	for !rl.WindowShouldClose() {
 
+                // --- Update Logic ---
 		switch currentScreenENUM {
 		case LOGO:
 			if frames > splashCountDown {
@@ -80,6 +103,7 @@ func main() {
 				currentScreen = titleScreen
 				currentGame = noGame
 				card = dk.NoCard()
+				//card = NoCard()
 			}
 		case TITLE:
 			if rl.IsKeyPressed(rl.KeyEnter) {
@@ -89,12 +113,25 @@ func main() {
 				currentGame = freeCellGame
 			}
 		case GAMEPLAY:
+                        if (rl.IsMouseButtonPressed(rl.MouseLeftButton)) {
+
+                            mousePos := rl.GetMousePosition()
+
+                            for i, card := range cards {
+
+                                if (rl.CheckCollisionPointRec(mousePos, card.Dest)) {
+                                        fmt.Printf("\nFound card at %v\n", card.Dest)
+                                        cards[i].IsSelected = true;
+                                }
+                            }
+                        }
 			if rl.IsKeyPressed(rl.KeyEscape) || rl.IsKeyPressed(rl.KeyEnter) { //|| (deckPlayed && card.Suit == "") {
 				deckPlayed = false
 				currentScreenENUM = ENDING
 				currentScreen = endScreen
 				currentGame = noGame
 				card = dk.NoCard()
+
 			}
 		case ENDING:
 			if rl.IsKeyPressed(rl.KeyEnter) {
@@ -102,6 +139,9 @@ func main() {
 			}
 		}
 
+
+
+		// --- Drawing Logic ---
 		rl.BeginDrawing()
 
 		rl.ClearBackground(rl.Black)
@@ -126,7 +166,7 @@ func noGame() error {
 // 	rl.DrawRectangleRec(rec, rl.DarkPurple)
 // }
 
-func splashScreen(rec rl.Rectangle) {
+func splashScreen( rec rl.Rectangle) {
 	frames++
 	txt := "YOUR LOGO GOES HERE"
 	txtlen := rl.MeasureText(txt, 50)
@@ -140,7 +180,7 @@ func splashScreen(rec rl.Rectangle) {
 	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
 }
 
-func titleScreen(rec rl.Rectangle) {
+func titleScreen( rec rl.Rectangle) {
 	rl.DrawRectangleRec(rec, rl.DarkPurple)
 	txt := "AN AMAZING TITLE GOES HERE"
 	txtlen := rl.MeasureText(txt, 50)
@@ -152,7 +192,7 @@ func titleScreen(rec rl.Rectangle) {
 	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
 }
 
-func endScreen(rec rl.Rectangle) {
+func endScreen( rec rl.Rectangle) {
 	rl.DrawRectangleRec(rec, rl.DarkBlue)
 	txt := "A DRAMATIC ENDING GOES HERE"
 	txtlen := rl.MeasureText(txt, 50)
@@ -163,3 +203,194 @@ func endScreen(rec rl.Rectangle) {
 	rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2+2, 30, rl.Black)
 	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
 }
+
+
+
+//**** Freecell
+func freeCellScreen( rec rl.Rectangle) {
+        var TxSprites rl.Texture2D
+        rl.DrawRectangleRec(rec, rl.DarkGreen)
+
+        //txt := "press escape to quit"
+        //txtlen := rl.MeasureText(txt, 30)
+        //rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2+2, 30, rl.Black)
+        //rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
+
+        for i, card := range cards {
+                TxSprites = getSprite(card, TxSprites)
+
+                source := getSpriteSource(card,FrameRec)
+                dest := getSpriteDest(i, FrameRec)
+                if cards[i].Dest != dest {
+                        cards[i].Dest = dest
+                }
+
+
+                origin := rl.Vector2(floatVect{X: 0.0, Y: 0.0})
+                rotation := float32(0.0)
+                if !card.IsSelected {
+                        rl.DrawTexturePro(TxSprites, source, dest, origin, rotation, rl.RayWhite)
+                }
+        }
+}
+//var cards []dk.Card
+//var card dk.Card
+
+func freeCellGame() error {
+
+        if !deckPlayed {
+                deckPlayed = true
+                seed := 1 + rand.IntN(32000)
+                cards = dk.Deal(seed)
+
+        }
+
+        //if rl.IsKeyPressed(rl.KeyEnter) {
+        //	card, cards, err = dk.PopFirst(cards[:])
+        // 	seed := 1 + rand.Intn(32000)
+        // 	cards = deal(seed)
+        // 	//Shuffle(cards[:])
+        //}
+        return nil
+}
+
+
+
+func getSpriteSource(card dk.Card, frameRec rl.Rectangle) rl.Rectangle {
+	ix := int32(0)
+	iy := int32(0)
+	switch { //could use dictionary to map
+	case card.Rank == string('2'):
+		ix = 0
+		iy = 0
+	case card.Rank == string('3'):
+		ix = 1
+		iy = 0
+	case card.Rank == string('4'):
+		ix = 2
+		iy = 0
+	case card.Rank == string('5'):
+		ix = 3
+		iy = 0
+	case card.Rank == string('6'):
+		ix = 4
+		iy = 0
+	case card.Rank == string('7'):
+		ix = 5
+		iy = 0
+	case card.Rank == string('8'):
+		ix = 6
+		iy = 0
+	case card.Rank == string('9'):
+		ix = 7
+		iy = 0
+	case card.Rank == string('T'):
+		ix = 0
+		iy = 1
+	case card.Rank == string('A'):
+		ix = 1
+		iy = 1
+	case card.Rank == string('J'):
+		ix = 5
+		iy = 1
+	case card.Rank == string('K'):
+		ix = 6
+		iy = 1
+	case card.Rank == string('Q'):
+		ix = 7
+		iy = 1
+	}
+
+	source := frameRec
+	source.X = float32(spriteSizeW*ix + 1)
+	source.Y = float32(spriteSizeH * iy)
+
+
+        return source
+}
+
+func getSpriteDest (idx int, frameRec rl.Rectangle) rl.Rectangle {
+        dest := frameRec
+        xgrd := idx % 8
+        ygrd := idx / 8
+        dest.X = float32(spriteSizeW*xgrd + 10*(xgrd+1) + 90)
+        dest.Y = float32(spriteSizeH + (ygrd)*50 + 40)
+        return dest
+}
+
+func getSprite(card dk.Card, TxSprites rl.Texture2D) rl.Texture2D {
+	switch {
+
+	case card.Suit == string('C'):
+		TxSprites = ClubsSprites
+	case card.Suit == string('S'):
+		TxSprites = SpadesSprites
+	case card.Suit == string('D'):
+		TxSprites = DiamondsSprites
+	case card.Suit == string('H'):
+		TxSprites = HeartsSprites
+	}
+	return TxSprites
+}
+
+
+
+
+
+//*** FreecellTable
+
+type Grid struct {
+        NumRows, NumCols, HolderSize int
+        gridData                     []int
+        //Colors                     []rl.Color
+}
+
+// Initilize all values with zeros
+func NewGrid() *Grid {
+        g := new(Grid)
+        //if g.NumRows <= 0 || g.NumCols <= 0 {
+        g.NumRows = 20
+        g.NumCols = 10
+        g.HolderSize = 30
+
+        //}
+        if len(g.gridData) == 0 {
+                g.gridData = make([]int, g.NumRows*g.NumCols)
+        }
+        for i := range g.gridData {
+                g.gridData[i] = 0
+        }
+        //	g.Colors = g.getCellColors()
+        return g
+}
+
+
+
+
+
+
+
+//**** AspectRatio
+type floatVect struct{ X, Y float32 }
+
+func getAspectRatio(a, b int32) floatVect {
+        var GCD int32
+
+        GCD = gcd(screenW, screenH)
+        w := screenW / GCD
+        h := screenH / GCD
+        arw := float32(w) / float32(h) //take note '/' does not work the same as in C
+        return floatVect{X: arw, Y: 1.0}
+}
+
+// gcd (Greatest Common Divisor) calculates the GCF of two numbers using the Euclidean algorithm.
+func gcd(a, b int32) int32 {
+        // Base case: if the second number (b) is 0, the GCD is the first number (a).
+        if b == 0 {
+                return a
+        }
+        // Recursive step: call gcd with the second number (b) and the remainder of a divided by b.
+        return gcd(b, a%b)
+}
+
+
