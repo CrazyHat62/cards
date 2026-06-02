@@ -58,7 +58,7 @@ type game func() error
 
 func main() {
 
-	//rl.InitWindow(0, 0, "raylib [core] example - basic screen manager")
+	//rl.InitWindow(0, 0, "raylib [core] example - basic screen manager") //fullscreen
 	rl.InitWindow(screenW, screenH, "raylib [core] example - basic screen manager")
 	defer rl.CloseWindow()
 	screenW = int32(rl.GetScreenWidth())
@@ -196,29 +196,18 @@ func endScreen(rec rl.Rectangle) {
 	rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
 }
 
-//**** Freecell
+// **** Freecell
 func freeCellScreen(rec rl.Rectangle) {
 	var TxSprites rl.Texture2D
+
 	rl.DrawRectangleRec(rec, rl.DarkGreen)
 
-	//txt := "press escape to quit"
-	//txtlen := rl.MeasureText(txt, 30)
-	//rl.DrawText(txt, screenW/2-txtlen/2-2, screenH/2+2, 30, rl.Black)
-	//rl.DrawText(txt, screenW/2-txtlen/2, screenH/2, 30, rl.White)
-
 	for i, card := range cards {
-		TxSprites = getSprite(card, TxSprites)
-
-		source := getSpriteSource(card, FrameRec)
-		dest := getSpriteDest(i, FrameRec)
-		if cards[i].Dest != dest {
-			cards[i].Dest = dest
-		}
-
+		TxSprites = getSuitSprite(card, TxSprites)
 		origin := rl.Vector2(floatVect{X: 0.0, Y: 0.0})
 		rotation := float32(0.0)
 		if !card.IsSelected {
-			rl.DrawTexturePro(TxSprites, source, dest, origin, rotation, rl.RayWhite)
+			rl.DrawTexturePro(TxSprites, cards[i].Source, cards[i].Dest, origin, rotation, rl.RayWhite)
 		}
 	}
 }
@@ -232,7 +221,10 @@ func freeCellGame() error {
 		deckPlayed = true
 		seed := 1 + rand.IntN(32000)
 		cards = dk.Deal(seed)
-
+		for i, card := range cards {
+			cards[i].Source = getCardSource(card, FrameRec)
+			cards[i].Dest = getInitialGridDest(i, FrameRec)
+		}
 	}
 
 	//if rl.IsKeyPressed(rl.KeyEnter) {
@@ -244,7 +236,8 @@ func freeCellGame() error {
 	return nil
 }
 
-func getSpriteSource(card dk.Card, frameRec rl.Rectangle) rl.Rectangle {
+// returns the source rectangle for the card sprite sheet based on the card's rank and suit
+func getCardSource(card dk.Card, frameRec rl.Rectangle) rl.Rectangle {
 	ix := int32(0)
 	iy := int32(0)
 	switch { //could use dictionary to map
@@ -296,7 +289,7 @@ func getSpriteSource(card dk.Card, frameRec rl.Rectangle) rl.Rectangle {
 	return source
 }
 
-func getSpriteDest(idx int, frameRec rl.Rectangle) rl.Rectangle {
+func getInitialGridDest(idx int, frameRec rl.Rectangle) rl.Rectangle {
 	dest := frameRec
 	xgrd := idx % 8
 	ygrd := idx / 8
@@ -305,9 +298,8 @@ func getSpriteDest(idx int, frameRec rl.Rectangle) rl.Rectangle {
 	return dest
 }
 
-func getSprite(card dk.Card, TxSprites rl.Texture2D) rl.Texture2D {
+func getSuitSprite(card dk.Card, TxSprites rl.Texture2D) rl.Texture2D {
 	switch {
-
 	case card.Suit == string('C'):
 		TxSprites = ClubsSprites
 	case card.Suit == string('S'):
@@ -347,25 +339,25 @@ func NewGrid() *Grid {
 	return g
 }
 
-//**** AspectRatio
+// **** AspectRatio
 type floatVect struct{ X, Y float32 }
 
-func getAspectRatio(a, b int32) floatVect {
-	var GCD int32
+// func getAspectRatio(a, b int32) floatVect {
+// 	var GCD int32
 
-	GCD = gcd(screenW, screenH)
-	w := screenW / GCD
-	h := screenH / GCD
-	arw := float32(w) / float32(h) //take note '/' does not work the same as in C
-	return floatVect{X: arw, Y: 1.0}
-}
+// 	GCD = gcd(screenW, screenH)
+// 	w := screenW / GCD
+// 	h := screenH / GCD
+// 	arw := float32(w) / float32(h) //take note '/' does not work the same as in C
+// 	return floatVect{X: arw, Y: 1.0}
+// }
 
-// gcd (Greatest Common Divisor) calculates the GCF of two numbers using the Euclidean algorithm.
-func gcd(a, b int32) int32 {
-	// Base case: if the second number (b) is 0, the GCD is the first number (a).
-	if b == 0 {
-		return a
-	}
-	// Recursive step: call gcd with the second number (b) and the remainder of a divided by b.
-	return gcd(b, a%b)
-}
+// // gcd (Greatest Common Divisor) calculates the GCF of two numbers using the Euclidean algorithm.
+// func gcd(a, b int32) int32 {
+// 	// Base case: if the second number (b) is 0, the GCD is the first number (a).
+// 	if b == 0 {
+// 		return a
+// 	}
+// 	// Recursive step: call gcd with the second number (b) and the remainder of a divided by b.
+// 	return gcd(b, a%b)
+// }
