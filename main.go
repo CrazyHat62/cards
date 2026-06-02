@@ -51,7 +51,16 @@ var Suits []string = []string{"hearts", "diamonds", "clubs", "spades"}
 var Ranks []string = []string{"Ace", "2", "3", "4", "5", "6", "7", "8", "9", "10", "Jack", "Queen", "King"}
 var Values = []int{1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13}
 
-// type gameScreen int
+// Mouse dragging variables
+var dragIndex int = -1
+var dragOffset rl.Vector2
+
+// Start of functions
+//
+//
+//
+
+// type gameScreen
 type gameScreen func(rl.Rectangle)
 
 type game func() error
@@ -91,6 +100,45 @@ func main() {
 
 		// --- Update Logic ---
 		switch currentScreenENUM {
+		case GAMEPLAY:
+			// Mouse press: pick topmost card under cursor and begin dragging
+			if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
+				mousePos := rl.GetMousePosition()
+
+				for i := len(cards) - 1; i >= 0; i-- {
+					if rl.CheckCollisionPointRec(mousePos, cards[i].Dest) {
+						fmt.Printf("\nFound card at %v\n", cards[i].Dest)
+						dragIndex = i
+						cards[i].IsSelected = true
+						dragOffset = rl.NewVector2(mousePos.X-cards[i].Dest.X, mousePos.Y-cards[i].Dest.Y)
+						break
+					}
+				}
+			}
+
+			// While holding mouse, move the dragged card with the cursor
+			if dragIndex != -1 && rl.IsMouseButtonDown(rl.MouseLeftButton) {
+				mousePos := rl.GetMousePosition()
+				cards[dragIndex].Dest.X = mousePos.X - dragOffset.X
+				cards[dragIndex].Dest.Y = mousePos.Y - dragOffset.Y
+			}
+
+			// On release, drop the card
+			if rl.IsMouseButtonReleased(rl.MouseLeftButton) {
+				if dragIndex != -1 {
+					cards[dragIndex].IsSelected = false
+					dragIndex = -1
+				}
+			}
+
+			if rl.IsKeyPressed(rl.KeyEscape) || rl.IsKeyPressed(rl.KeyEnter) { //|| (deckPlayed && card.Suit == "") {
+				deckPlayed = false
+				currentScreenENUM = ENDING
+				currentScreen = endScreen
+				currentGame = noGame
+				card = dk.NoCard()
+
+			}
 		case LOGO:
 			if frames > splashCountDown {
 				currentScreenENUM = TITLE
@@ -105,27 +153,6 @@ func main() {
 				// Set up free cell here
 				currentScreen = freeCellScreen
 				currentGame = freeCellGame
-			}
-		case GAMEPLAY:
-			if rl.IsMouseButtonPressed(rl.MouseLeftButton) {
-
-				mousePos := rl.GetMousePosition()
-
-				for i, card := range cards {
-
-					if rl.CheckCollisionPointRec(mousePos, card.Dest) {
-						fmt.Printf("\nFound card at %v\n", card.Dest)
-						cards[i].IsSelected = true
-					}
-				}
-			}
-			if rl.IsKeyPressed(rl.KeyEscape) || rl.IsKeyPressed(rl.KeyEnter) { //|| (deckPlayed && card.Suit == "") {
-				deckPlayed = false
-				currentScreenENUM = ENDING
-				currentScreen = endScreen
-				currentGame = noGame
-				card = dk.NoCard()
-
 			}
 		case ENDING:
 			if rl.IsKeyPressed(rl.KeyEnter) {
@@ -199,7 +226,6 @@ func endScreen(rec rl.Rectangle) {
 // **** Freecell
 func freeCellScreen(rec rl.Rectangle) {
 	var TxSprites rl.Texture2D
-
 	rl.DrawRectangleRec(rec, rl.DarkGreen)
 
 	for i, card := range cards {
@@ -208,6 +234,15 @@ func freeCellScreen(rec rl.Rectangle) {
 		rotation := float32(0.0)
 		if !card.IsSelected {
 			rl.DrawTexturePro(TxSprites, cards[i].Source, cards[i].Dest, origin, rotation, rl.RayWhite)
+		}
+	}
+	// Draw selected card(s) last so they appear on top (use current Dest which may be moved while dragging)
+	for _, card := range cards {
+		if card.IsSelected {
+			TxSprites = getSuitSprite(card, TxSprites)
+			origin := rl.Vector2(floatVect{X: 0.0, Y: 0.0})
+			rotation := float32(0.0)
+			rl.DrawTexturePro(TxSprites, card.Source, card.Dest, origin, rotation, rl.RayWhite)
 		}
 	}
 }
@@ -312,7 +347,7 @@ func getSuitSprite(card dk.Card, TxSprites rl.Texture2D) rl.Texture2D {
 	return TxSprites
 }
 
-//*** FreecellTable
+// *** FreecellTable
 
 type Grid struct {
 	NumRows, NumCols, HolderSize int
